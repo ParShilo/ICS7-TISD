@@ -1,0 +1,5 @@
+South_Africa Pretoria Africa 1 10 700 2 1
+Kenya Nairobi Africa 1 8 650 0 15 0
+Tanzania Dodoma Africa 1 9 600 0 18 0
+Morocco Rabat Africa 1 6 550 0 12 1
+Tunisia Tunis Africa 1 5 500 1 0 30 27

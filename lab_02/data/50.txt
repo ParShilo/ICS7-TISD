@@ -1,0 +1,50 @@
+Russia Moscow Europe 1 3 800 2 0
+France Paris Europe 1 4 1200 0 15 1
+Italy Rome Europe 1 3 1000 1 0 28 25
+Spain Madrid Europe 1 5 900 2 1
+Germany Berlin Europe 1 3 1100 0 12 2
+UK London Europe 1 4 1300 1 1 22 18
+Portugal Lisbon Europe 1 6 750 2 1
+Greece Athens Europe 1 4 950 1 0 30 26
+Turkey Ankara Europe 0 3 600 1 0 32 28
+Austria Vienna Europe 1 3 1100 2 0
+Switzerland Bern Europe 1 3 1500 2 0
+Norway Oslo Europe 1 4 1400 2 2
+Sweden Stockholm Europe 1 4 1200 0 8 0
+Finland Helsinki Europe 1 3 1100 0 10 0
+Denmark Copenhagen Europe 1 3 1000 1 1 20 16
+Netherlands Amsterdam Europe 1 4 1050 0 14 1
+Belgium Brussels Europe 1 3 950 0 11 2
+Poland Warsaw Europe 1 2 700 0 9 0
+Czechia Prague Europe 1 2 650 0 7 1
+Hungary Budapest Europe 1 2 600 0 6 2
+USA Washington North_America 0 12 2000 2 1
+Canada Ottawa North_America 0 11 1800 2 0
+Mexico Mexico_City North_America 0 13 1200 1 0 30 28
+Brazil Brasilia South_America 0 14 800 2 1
+Argentina Buenos_Aires South_America 0 16 900 2 2
+Chile Santiago South_America 0 17 850 0 5 0
+Peru Lima South_America 0 16 750 0 8 2
+Colombia Bogota South_America 0 15 700 1 0 28 26
+Egypt Cairo Africa 1 5 600 0 20 2
+South_Africa Pretoria Africa 1 10 700 2 1
+Morocco Rabat Africa 1 6 550 0 12 1
+Tunisia Tunis Africa 1 5 500 1 0 30 27
+Kenya Nairobi Africa 1 8 650 0 15 0
+Tanzania Dodoma Africa 1 9 600 0 18 0
+China Beijing Asia 1 8 900 0 25 1
+Japan Tokyo Asia 1 9 1500 2 0
+South_Korea Seoul Asia 1 8 1300 0 18 2
+Thailand Bangkok Asia 0 9 500 1 0 32 30
+Vietnam Hanoi Asia 0 9 450 0 12 0
+India New_Delhi Asia 0 7 400 0 20 2
+Indonesia Jakarta Asia 0 11 550 1 0 31 29
+Malaysia Kuala_Lumpur Asia 0 10 600 1 0 30 28
+Philippines Manila Asia 0 11 500 2 1
+UAE Dubai Asia 0 5 1200 1 0 35 32
+Singapore Singapore Asia 0 10 1100 0 10 1
+Australia Canberra Australia 1 20 1800 2 1
+New_Zealand Wellington Australia 1 22 1600 2 2
+Fiji Suva Australia 0 18 900 2 1
+Iceland Reykjavik Europe 1 5 1300 0 7 0
+Ireland Dublin Europe 1 4 950 0 9 1
