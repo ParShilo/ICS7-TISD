@@ -287,7 +287,7 @@ void compare_performance(double** A, size_t A_lines, size_t A_columns, double** 
     
     int rc;
     double** result_normal = NULL;
-    const size_t num_runs = 3;
+    const size_t num_runs = 10;
     double avg_time_sparse = 0.0;
     double avg_time_normal = 0.0;
     
@@ -308,7 +308,7 @@ void compare_performance(double** A, size_t A_lines, size_t A_columns, double** 
 
         avg_time_sparse += ((double)(end - start)) / CLOCKS_PER_SEC;
         
-        //print_csr_normal(&result_sparse);
+        print_csr_normal(&result_sparse);
         free_csr_matrix(&result_sparse);
     }
     
@@ -321,7 +321,7 @@ void compare_performance(double** A, size_t A_lines, size_t A_columns, double** 
         
         avg_time_normal += ((double)(end - start)) / CLOCKS_PER_SEC;
         
-        //print_matrix(result_normal, A_lines, B_columns);
+        print_matrix(result_normal, A_lines, B_columns);
         if (result_normal)
             free_matrix(result_normal, A_lines);
     }
