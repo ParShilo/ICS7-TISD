@@ -51,8 +51,8 @@ int multiply_sparse_csr_csc(const CSRMatrix *A, const CSCMatrix *B, CSRMatrix *r
         // Цикл для каждого ненулевого элемента в строке A
         for (size_t a_idx = a_row_start; a_idx < a_row_end; a_idx++)
         {
-            k = A->IA[a_idx];    // Столбец в A
-            val_A = A->A[a_idx]; // Значение A[i][k]
+            k = A->IA[a_idx];
+            val_A = A->A[a_idx];
             
             // Поиск элементов строки k матрицы B во всех столбцах
             for (size_t j = 0; j < B->columns; j++)
@@ -287,16 +287,17 @@ void compare_performance(double** A, size_t A_lines, size_t A_columns, double** 
     
     int rc;
     double** result_normal = NULL;
-    const size_t num_runs = 10;
+    const size_t num_runs = 1;
     double avg_time_sparse = 0.0;
     double avg_time_normal = 0.0;
+    clock_t start, end;
     
     //Измерение времени разреженного умножения
     for (size_t run = 0; run < num_runs; run++)
     {
-        clock_t start = clock();
+        start = clock();
         rc = multiply_sparse_csr_csc(&A_csr, &B_csc, &result_sparse);
-        clock_t end = clock();
+        end = clock();
         
         if (rc != ERROR_OK)
         {
@@ -308,20 +309,20 @@ void compare_performance(double** A, size_t A_lines, size_t A_columns, double** 
 
         avg_time_sparse += ((double)(end - start)) / CLOCKS_PER_SEC;
         
-        print_csr_normal(&result_sparse);
+        //print_csr_normal(&result_sparse);
         free_csr_matrix(&result_sparse);
     }
     
     // Измерение времени стандартного умножения
     for (size_t run = 0; run < num_runs; run++)
     {
-        clock_t start = clock();
+        start = clock();
         result_normal = multiply_matrices(A, A_lines, A_columns, B, B_lines, B_columns);
-        clock_t end = clock();
+        end = clock();
         
         avg_time_normal += ((double)(end - start)) / CLOCKS_PER_SEC;
         
-        print_matrix(result_normal, A_lines, B_columns);
+        //print_matrix(result_normal, A_lines, B_columns);
         if (result_normal)
             free_matrix(result_normal, A_lines);
     }

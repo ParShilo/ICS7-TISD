@@ -1,7 +1,7 @@
 #ifndef STACK_H__
 #define STACK_H__
 
-#define MAX_SIZE 10000
+#define MAX_SIZE 10
 
 // Структура для узла списка
 typedef struct Node

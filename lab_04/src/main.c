@@ -76,13 +76,13 @@ void emulate_stack(void)
 void compare_stacks(void)
 {
     printf("\n");
-    printf("    +-----------------------------------------------------------------------------------------+\n");
-    printf("    |                               Сравнение реализации стеков                               |\n");
-    printf("    +-----------------------------------------------------------------------------------------+\n");
+    printf("    +-------------------------------------------------------------------------------------------------+\n");
+    printf("    |                               Сравнение реализации стеков                                       |\n");
+    printf("    +--------+-------------+-------------+------------+----------------+----------------+-------------+\n");
     
-    int sizes[] = {10, 50, 100, 300, 500, 1000, 2000, 5000, 10000};
+    int sizes[] = {3, 5, 10, 20, 50, 100, 300, 500, 1000, 2000, 5000, 10000};
     int num_sizes = sizeof(sizes) / sizeof(sizes[0]);
-    const int NUM_RUNS = 10;
+    const int num_runs = 20;
     
     printf("    | Размер | Массив(сек) | Список(сек) | Время(м/с) | Память(массив) | Память(список) | Память(м/с) |\n");
     printf("    +--------+-------------+-------------+------------+----------------+----------------+-------------+\n");
@@ -90,7 +90,7 @@ void compare_stacks(void)
     ArrayStack stack1, stack2, temp, result;
     ListStack list_stack1, list_stack2, list_temp, list_result;
     int n, value, temp_val;
-    double total_array_time, total_list_time, avg_array_time, avg_list_time, time_ratio, memory_ratio;
+    double total_array_time, total_list_time, avg_array_time, avg_list_time;
     size_t array_memory, list_memory;
     clock_t start, end;
     
@@ -100,7 +100,7 @@ void compare_stacks(void)
         total_array_time = 0.0;
         total_list_time = 0.0;
         
-        for (int run = 0; run < NUM_RUNS; run++)
+        for (int run = 0; run < num_runs; run++)
         {
             // Инициализация стеков
             array_init(&stack1);
@@ -204,18 +204,16 @@ void compare_stacks(void)
         }
         
         // Усреднение и вывод
-        avg_array_time = total_array_time / NUM_RUNS;
-        avg_list_time = total_list_time / NUM_RUNS;
-        array_memory = 4 * n * sizeof(int);
+        avg_array_time = total_array_time / num_runs;
+        avg_list_time = total_list_time / num_runs;
+        array_memory = 4 * MAX_SIZE * sizeof(int);
         list_memory = 4 * n * sizeof(Node);
-        time_ratio = (avg_list_time > 1e-9) ? avg_array_time / avg_list_time : 0;
-        memory_ratio = (list_memory > 0) ? (double)array_memory / list_memory : 0;
         
         printf("    | %6d | %-11.6f | %-11.6f | %-10.6f | %-14lu | %-14lu | %-11.3f |\n", 
-               n, avg_array_time, avg_list_time, time_ratio,
+               n, avg_array_time, avg_list_time, avg_array_time / avg_list_time,
                (unsigned long)array_memory, 
                (unsigned long)list_memory,
-               memory_ratio);
+               (double)array_memory / list_memory);
     } 
     printf("    +--------+-------------+-------------+------------+----------------+----------------+-------------+\n");
 }

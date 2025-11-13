@@ -12,7 +12,7 @@ int free_count = 0;
 
 void list_stack_operations(ListStack* stack)
 {
-    int operation;
+    int operation, value;
     
     do {
         print_operation_menu(2);
@@ -22,11 +22,11 @@ void list_stack_operations(ListStack* stack)
         {
             case 1:
             {
-                int value = get_integer_input("Введите целое число", -100000, 100000);
+                value = get_integer_input("Введите целое число", -100000, 100000);
                 if (list_push(stack, value))
                     printf("Элемент %d добавлен в стек\n", value);
                 else
-                    printf("Ошибка: не удалось выделить память!\n");
+                    printf("Ошибка: стек переполнен или не удалось выделить память!\n");
                 break;
             }
             case 2:
@@ -82,8 +82,16 @@ int list_is_empty(ListStack* stack)
     return stack->top == NULL;
 }
 
+int list_is_full(ListStack* stack)
+{
+    return stack->size == MAX_SIZE - 1;
+}
+
 int list_push(ListStack* stack, int value)
 {
+    if (list_is_full(stack))
+        return 0;
+
     Node* new_node = (Node*)malloc(sizeof(Node));
     if (!new_node)
         return 0;
@@ -140,6 +148,7 @@ void list_display_with_addresses(ListStack* stack)
     
     printf("Содержимое стека с адресами:\n");
     Node* current = stack->top;
+    //printf("Размер: %ld\n", sizeof(Node));
     while (current != NULL)
     {
         printf("Адрес: %p, Данные: %d\n", (void*)current, current->data);
@@ -198,12 +207,12 @@ void sort_with_list_stack(void)
     }
     
     // Сортировка
+    int temp_val;
     while (!list_is_empty(&temp))
     {
         list_pop(&temp, &value);
         while (!list_is_empty(&result) && result.top->data < value)
         {
-            int temp_val;
             list_pop(&result, &temp_val);
             list_push(&temp, temp_val);
         }
