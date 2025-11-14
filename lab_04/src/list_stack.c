@@ -10,6 +10,7 @@
 Node* free_addresses = NULL;
 int free_count = 0;
 
+// Функция взаимодействий со стеком в виде списка
 void list_stack_operations(ListStack* stack)
 {
     int operation, value;
@@ -22,20 +23,27 @@ void list_stack_operations(ListStack* stack)
         {
             case 1:
             {
-                value = get_integer_input("Введите целое число", -100000, 100000);
-                if (list_push(stack, value))
-                    printf("Элемент %d добавлен в стек\n", value);
+                if (list_is_full(stack))
+                    printf("Ошибка: стек переполнен!\n");
                 else
-                    printf("Ошибка: стек переполнен или не удалось выделить память!\n");
+                {
+                    value = get_integer_input("Введите целое число", -100000, 100000);
+                    if (list_push(stack, value) == ERROR_OK)
+                        printf("Элемент %d добавлен в стек\n", value);
+                    else
+                        printf("Ошибка: Не удалось выделить память!\n");
+                }
                 break;
             }
             case 2:
             {
-                int value;
-                if (list_pop(stack, &value))
-                    printf("Элемент %d удален из стека\n", value);
-                else
+                if (list_is_empty(stack))
                     printf("Ошибка: стек пуст!\n");
+                else
+                {
+                    list_pop(stack, &value);
+                    printf("Элемент %d удален из стека\n", value);
+                }
                 break;
             }
             case 3:
@@ -70,44 +78,48 @@ void list_stack_operations(ListStack* stack)
     } while (operation != 0);
 }
 
-// Реализация функций для списка
+// Функция инициализации стека в виде списка
 void list_init(ListStack* stack)
 {
     stack->top = NULL;
     stack->size = 0;
 }
 
+// Функция проверки стека на отсутствие элементов
 int list_is_empty(ListStack* stack)
 {
     return stack->top == NULL;
 }
 
+// Функция проверки стека на переполнение
 int list_is_full(ListStack* stack)
 {
-    return stack->size == MAX_SIZE - 1;
+    return stack->size == MAX_SIZE;
 }
 
+// Функция для добавление нового элемента в стек
 int list_push(ListStack* stack, int value)
 {
     if (list_is_full(stack))
-        return 0;
+        return ERROR_OVERFLOW;
 
-    Node* new_node = (Node*)malloc(sizeof(Node));
+    Node* new_node = malloc(sizeof(Node));
     if (!new_node)
-        return 0;
+        return ERROR_MEM;
     
     new_node->data = value;
     new_node->next = stack->top;
     stack->top = new_node;
     stack->size++;
     
-    return 1;
+    return ERROR_OK;
 }
 
+// Функция для удаления последнего элемента из стека
 int list_pop(ListStack* stack, int* value)
 {
     if (list_is_empty(stack))
-        return 0;
+        return ERROR_DELETING;
     
     Node* temp = stack->top;
     *value = temp->data;
@@ -117,9 +129,10 @@ int list_pop(ListStack* stack, int* value)
     free(temp);
     stack->size--;
     
-    return 1;
+    return ERROR_OK;
 }
 
+// Функция вывода стека
 void list_display(ListStack* stack)
 {
     if (list_is_empty(stack))
@@ -128,7 +141,7 @@ void list_display(ListStack* stack)
         return;
     }
     
-    printf("Содержимое стека (сверху вниз): ");
+    printf("Содержимое стека : ");
     Node* current = stack->top;
     while (current != NULL)
     {
@@ -138,6 +151,7 @@ void list_display(ListStack* stack)
     printf("\n");
 }
 
+// Функция вывода стека с адресами
 void list_display_with_addresses(ListStack* stack)
 {
     if (list_is_empty(stack))
@@ -156,18 +170,19 @@ void list_display_with_addresses(ListStack* stack)
     }
 }
 
+// Функция освобождения стека в виде списка
 void list_free(ListStack* stack)
 {
+    int value;
     while (!list_is_empty(stack))
-    {
-        int value;
         list_pop(stack, &value);
-    }
 }
 
+// Функция сортировки двух стеков с помощью третьего
 void sort_with_list_stack(void)
 {
     ListStack stack1, stack2, temp, result;
+    int value;
     list_init(&stack1);
     list_init(&stack2);
     list_init(&temp);
@@ -176,25 +191,24 @@ void sort_with_list_stack(void)
     printf("=== Сортировка с использованием списка ===\n");
     
     // Ввод первого стека
-    int n1 = get_integer_input("Введите количество элементов для первого стека", 1, MAX_SIZE/2);
+    int n1 = get_integer_input("Введите количество элементов для первого стека", 1, MAX_SIZE / 2);
     printf("Введите элементы первого стека:\n");
     for (int i = 0; i < n1; i++)
     {
-        int value = get_integer_input("", -100000, 100000);
+        value = get_integer_input("", -100000, 100000);
         list_push(&stack1, value);
     }
     
     // Ввод второго стека
-    int n2 = get_integer_input("Введите количество элементов для второго стека", 1, MAX_SIZE/2);
+    int n2 = get_integer_input("Введите количество элементов для второго стека", 1, MAX_SIZE / 2);
     printf("Введите элементы второго стека:\n");
     for (int i = 0; i < n2; i++)
     {
-        int value = get_integer_input("", -100000, 100000);
+        value = get_integer_input("", -100000, 100000);
         list_push(&stack2, value);
     }
     
     // Объединение и сортировка
-    int value;
     while (!list_is_empty(&stack1))
     {
         list_pop(&stack1, &value);
@@ -229,20 +243,21 @@ void sort_with_list_stack(void)
     list_free(&result);
 }
 
-// Функции для свободных адресов
+// Функции добавления свободных адресов
 void add_free_address(void* addr)
 {
     (void)addr;
-    Node* new_node = (Node*)malloc(sizeof(Node));
+    Node* new_node = malloc(sizeof(Node));
     if (new_node)
     {
-        new_node->data = 0; // не используется
+        new_node->data = 0;
         new_node->next = free_addresses;
         free_addresses = new_node;
         free_count++;
     }
 }
 
+// Функция вывода свободных адресов
 void display_free_addresses(void)
 {
     if (free_addresses == NULL)
@@ -260,11 +275,13 @@ void display_free_addresses(void)
     }
 }
 
+// Функция очистки свободных адресов
 void clear_free_addresses(void)
 {
+    Node* temp = NULL;
     while (free_addresses != NULL)
     {
-        Node* temp = free_addresses;
+        temp = free_addresses;
         free_addresses = free_addresses->next;
         free(temp);
     }

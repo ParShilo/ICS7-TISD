@@ -14,7 +14,7 @@ out/array_stack.o: src/array_stack.c inc/array_stack.h inc/stack.h inc/print.h i
 out/list_stack.o: src/list_stack.c inc/list_stack.h inc/stack.h inc/print.h inc/main.h inc/err.h
 	$(COMPILER_NAME) $(CFLAGS) -c $< -o $@
 
-out/print.o: src/print.c inc/print.h
+out/print.o: src/print.c inc/print.h inc/stack.h
 	$(COMPILER_NAME) $(CFLAGS) -c $< -o $@
 
 out:

@@ -7,9 +7,10 @@
 #include "print.h"
 #include "array_stack.h"
 
+// Функция взаимодействий со стеком в виде массива
 void array_stack_operations(ArrayStack* stack)
 {
-    int operation;
+    int operation, value;
     
     do {
         print_operation_menu(1);
@@ -19,20 +20,25 @@ void array_stack_operations(ArrayStack* stack)
         {
             case 1: 
             {
-                int value = get_integer_input("Введите целое число", -100000, 100000);
-                if (array_push(stack, value))
-                    printf("Элемент %d добавлен в стек.\n", value);
-                else
+                if (array_is_full(stack))
                     printf("Ошибка: стек переполнен!\n");
+                else
+                {
+                    value = get_integer_input("Введите целое число", -100000, 100000);
+                    array_push(stack, value);
+                    printf("Элемент %d добавлен в стек.\n", value);
+                }
                 break;
             }
             case 2:
             {
-                int value;
-                if (array_pop(stack, &value))
-                    printf("Элемент %d удален из стека.\n", value);
-                else
+                if (array_is_empty(stack))
                     printf("Ошибка: стек пуст!\n");
+                else
+                {
+                    array_pop(stack, &value);
+                    printf("Элемент %d удален из стека\n", value);
+                }
                 break;
             }
             case 3:
@@ -55,39 +61,45 @@ void array_stack_operations(ArrayStack* stack)
     } while (operation != 0);
 }
 
-// Реализация функций для массива
+// Функция инициализации стека в виде массива
 void array_init(ArrayStack* stack)
 {
     stack->top = -1;
 }
 
+// Функция проверки стека на отсутствие элементов
 int array_is_empty(ArrayStack* stack)
 {
     return stack->top == -1;
 }
 
+// Функция проверки стека на переполнение
 int array_is_full(ArrayStack* stack)
 {
     return stack->top == MAX_SIZE - 1;
 }
 
+// Функция для добавление нового элемента в стек
 int array_push(ArrayStack* stack, int value)
 {
     if (array_is_full(stack))
-        return 0;
+        return ERROR_OVERFLOW;
+
     stack->data[++stack->top] = value;
-    return 1;
+    return ERROR_OK;
 }
 
+// Функция для удаления последнего элемента из стека
 int array_pop(ArrayStack* stack, int* value)
 {
     if (array_is_empty(stack))
-        return 0;
+        return ERROR_DELETING;
 
     *value = stack->data[stack->top--];
-    return 1;
+    return ERROR_OK;
 }
 
+// Функция вывода стека
 void array_display(ArrayStack* stack)
 {
     if (array_is_empty(stack))
@@ -96,15 +108,17 @@ void array_display(ArrayStack* stack)
         return;
     }
     
-    printf("Содержимое стека (сверху вниз): ");
+    printf("Содержимое стека: ");
     for (int i = stack->top; i >= 0; i--)
         printf("%d ", stack->data[i]);
     printf("\n");
 }
 
+// Функция сортировки двух стеков с помощью третьего
 void sort_with_array_stack(void)
 {
     ArrayStack stack1, stack2, temp, result;
+    int value;
     array_init(&stack1);
     array_init(&stack2);
     array_init(&temp);
@@ -117,7 +131,7 @@ void sort_with_array_stack(void)
     printf("Введите элементы первого стека:\n");
     for (int i = 0; i < n1; i++)
     {
-        int value = get_integer_input("", -100000, 100000);
+        value = get_integer_input("", -100000, 100000);
         array_push(&stack1, value);
     }
     
@@ -126,12 +140,11 @@ void sort_with_array_stack(void)
     printf("Введите элементы второго стека:\n");
     for (int i = 0; i < n2; i++)
     {
-        int value = get_integer_input("", -100000, 100000);
+        value = get_integer_input("", -100000, 100000);
         array_push(&stack2, value);
     }
     
     // Объединение и сортировка
-    int value;
     while (!array_is_empty(&stack1))
     {
         array_pop(&stack1, &value);
@@ -144,12 +157,12 @@ void sort_with_array_stack(void)
     }
     
     // Сортировка
+    int temp_val;
     while (!array_is_empty(&temp))
     {
         array_pop(&temp, &value);
         while (!array_is_empty(&result) && result.data[result.top] < value)
         {
-            int temp_val;
             array_pop(&result, &temp_val);
             array_push(&temp, temp_val);
         }

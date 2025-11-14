@@ -5,6 +5,7 @@
 
 void list_init(ListStack* stack);
 int list_is_empty(ListStack* stack);
+int list_is_full(ListStack* stack);
 int list_push(ListStack* stack, int value);
 int list_pop(ListStack* stack, int* value);
 void list_display(ListStack* stack);

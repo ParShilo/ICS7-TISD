@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "print.h"
 
+// Функция вывода начального меню
 void print_main_menu(void)
 {
     printf("\n");
@@ -15,6 +16,7 @@ void print_main_menu(void)
     printf("Выбор: ");
 }
 
+// Функция выбора способа использования стека
 void print_stack_type_menu(void)
 {
     printf("\n");
@@ -28,6 +30,7 @@ void print_stack_type_menu(void)
     printf("Выбор: ");
 }
 
+// Функция вывода меню для взаимодействия со стеком
 void print_operation_menu(int stack_type)
 {
     printf("\n");
@@ -45,5 +48,6 @@ void print_operation_menu(int stack_type)
         printf("    | 6 - История удаленных элементов.                          |\n");
     }
     printf("    +-----------------------------------------------------------+\n");
+    printf("       // Максимальное количество элементов в стеке: %7d\n", MAX_SIZE);
     printf("Выбор: ");
 }

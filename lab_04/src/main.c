@@ -17,21 +17,25 @@ int main(void)
     printf("Программа работы со стеком\n");
     
     do {
+        // Вывод меню
         print_main_menu();
         choice = get_integer_input("Введите номер", 0, 2);
         
         switch (choice)
         {
+            // Эмуляция стека
             case 1:
             {
                 emulate_stack();
                 break;
             }
+            // Сравнение производительности
             case 2:
             {
                 compare_stacks();
                 break;
             }
+            // Выход
             case 0:
             {
                 printf("Выход из программы.\n");
@@ -45,6 +49,7 @@ int main(void)
     return 0;
 }
 
+// Функция эмуляции стека
 void emulate_stack(void)
 {
     int stack_type;
@@ -73,6 +78,7 @@ void emulate_stack(void)
     } while (stack_type != 0);
 }
 
+// Функция сравнения производительности
 void compare_stacks(void)
 {
     printf("\n");
@@ -80,9 +86,9 @@ void compare_stacks(void)
     printf("    |                               Сравнение реализации стеков                                       |\n");
     printf("    +--------+-------------+-------------+------------+----------------+----------------+-------------+\n");
     
-    int sizes[] = {3, 5, 10, 20, 50, 100, 300, 500, 1000, 2000, 5000, 10000};
+    int sizes[] = {3, 5, 10, 20, 50, 100, 300, 500, 1000, 2500, 3000, 5000, 10000};
     int num_sizes = sizeof(sizes) / sizeof(sizes[0]);
-    const int num_runs = 20;
+    const int num_runs = 30;
     
     printf("    | Размер | Массив(сек) | Список(сек) | Время(м/с) | Память(массив) | Память(список) | Память(м/с) |\n");
     printf("    +--------+-------------+-------------+------------+----------------+----------------+-------------+\n");
@@ -218,22 +224,25 @@ void compare_stacks(void)
     printf("    +--------+-------------+-------------+------------+----------------+----------------+-------------+\n");
 }
 
-// Вспомогательные функции
+// Функция ввода числа
 int get_integer_input(const char* prompt, int min, int max)
 {
     int value;
     int valid_input = 0;
     
-    while (!valid_input) {
+    while (!valid_input)
+    {
         printf("%s (%d <--> %d): ", prompt, min, max);
         
-        if (scanf("%d", &value) != 1) {
+        if (scanf("%d", &value) != 1)
+        {
             printf("Ошибка: введите целое число!\n");
             clear_input_buffer();
             continue;
         }
         
-        if (value < min || value > max) {
+        if (value < min || value > max)
+        {
             printf("Ошибка: число должно быть в диапазоне %d <--> %d!\n", min, max);
             continue;
         }
@@ -245,6 +254,7 @@ int get_integer_input(const char* prompt, int min, int max)
     return value;
 }
 
+// Функция очистки буфера
 void clear_input_buffer(void)
 {
     int c;
