@@ -7,7 +7,7 @@
 #include "print.h"
 #include "list_stack.h"
 
-Node* free_addresses = NULL;
+FreeNode* free_addresses = NULL;
 int free_count = 0;
 
 // Функция взаимодействий со стеком в виде списка
@@ -246,18 +246,17 @@ void sort_with_list_stack(void)
 // Функции добавления свободных адресов
 void add_free_address(void* addr)
 {
-    (void)addr;
-    Node* new_node = malloc(sizeof(Node));
+    FreeNode* new_node = malloc(sizeof(FreeNode));
     if (new_node)
     {
-        new_node->data = 0;
+        new_node->freed_addr = addr;
         new_node->next = free_addresses;
         free_addresses = new_node;
         free_count++;
     }
 }
 
-// Функция вывода свободных адресов
+// Функция вывода списка освобожденных адресов
 void display_free_addresses(void)
 {
     if (free_addresses == NULL)
@@ -267,18 +266,18 @@ void display_free_addresses(void)
     }
     
     printf("История удалений (%d элементов):\n", free_count);
-    Node* current = free_addresses;
+    FreeNode* current = free_addresses;
     while (current != NULL)
     {
-        printf("Освобожденный адрес: %p\n", (void*)current);
+        printf("Освобожденный адрес: %p\n", current->freed_addr);
         current = current->next;
     }
 }
 
-// Функция очистки свободных адресов
+// Функция очистки списка освобожденных адресов
 void clear_free_addresses(void)
 {
-    Node* temp = NULL;
+    FreeNode* temp = NULL;
     while (free_addresses != NULL)
     {
         temp = free_addresses;
