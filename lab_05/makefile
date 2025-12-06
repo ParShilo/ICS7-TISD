@@ -5,7 +5,7 @@ LDFLAGS := -lm
 app.exe: out out/main.o out/arr.o out/list.o out/print.o out/simulate.o
 	$(COMPILER_NAME) $(LDFLAGS) -o $@ out/main.o out/arr.o out/list.o out/print.o out/simulate.o
 	
-out/main.o: src/main.c inc/errors.h inc/defines.h inc/print.h inc/arr.h inc/list.h
+out/main.o: src/main.c inc/errors.h inc/defines.h inc/print.h inc/arr.h inc/list.h inc/simulate.h
 	$(COMPILER_NAME) $(CFLAGS) -c $< -o $@
 
 out/arr.o: src/arr.c inc/arr.h inc/errors.h
@@ -14,10 +14,10 @@ out/arr.o: src/arr.c inc/arr.h inc/errors.h
 out/list.o: src/list.c inc/list.h inc/errors.h
 	$(COMPILER_NAME) $(CFLAGS) -c $< -o $@
 
-out/print.o: src/print.c
+out/print.o: src/print.c inc/simulate.h
 	$(COMPILER_NAME) $(CFLAGS) -c $< -o $@
 
-out/simulate.o: src/simulate.c inc/simulate.h inc/arr.h inc/list.h inc/errors.h
+out/simulate.o: src/simulate.c inc/arr.h inc/list.h inc/print.h inc/simulate.h inc/errors.h
 	$(COMPILER_NAME) $(CFLAGS) -c $< -o $@
 
 out:

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "defines.h"
 #include "errors.h"
 #include "arr.h"
@@ -79,4 +80,26 @@ void print_array_queue(array_queue *q)
         count++;
     }
     printf("\n");
+}
+
+// Вставка элемента на позицию от головы
+int insert_array_element_at_position(array_queue *q, request_t value, int position_from_head)
+{
+    if (is_array_queue_full(q))
+        return ERROR_OVEFLOW;
+    
+    if (position_from_head > q->size)
+        position_from_head = q->size;
+
+    // Сдвиг элементов
+    for (int i = q->size; i > position_from_head; i--)
+        q->data[(q->pout + i) % MAX_QUEUE_SIZE] = q->data[(q->pout + i - 1) % MAX_QUEUE_SIZE];
+    
+    // Вставка нового элемента
+    q->data[(q->pout + position_from_head) % MAX_QUEUE_SIZE] = value;
+    
+    q->pin = (q->pin + 1) % MAX_QUEUE_SIZE;
+    q->size++;
+    
+    return ERROR_OK;
 }

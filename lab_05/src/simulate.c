@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <math.h>
 #include <time.h>
 #include "defines.h"
@@ -18,76 +19,8 @@ double generate_random_time(double min, double max)
     return min + (max - min) * (rand() / (double)RAND_MAX);
 }
 
-// Нахождение элемента на позиции от головы (для заявки 2 типа)
-int find_element_at_position(array_queue *q, int position_from_head, request_t *value)
-{
-    if (is_array_queue_empty(q) || position_from_head >= q->size)
-        return ERROR_EMPTY;
-    
-    int index = (q->pout + position_from_head) % MAX_QUEUE_SIZE;
-    *value = q->data[index];
-    return ERROR_OK;
-}
-
-// Удаление элемента на позиции от головы
-int remove_element_at_position(array_queue *q, int position_from_head)
-{
-    if (is_array_queue_empty(q) || position_from_head >= q->size)
-        return ERROR_EMPTY;
-    
-    // Если удаляем первый элемент - используем стандартную функцию
-    if (position_from_head == 0)
-    {
-        dequeue_array(q, 0);
-        return ERROR_OK;
-    }
-    
-    // Сдвигаем элементы
-    int queue_size = q->size;
-    
-    // Сдвигаем все элементы после удаляемого
-    for (int i = position_from_head; i < queue_size - 1; i++)
-    {
-        int current_index = (q->pout + i) % MAX_QUEUE_SIZE;
-        int next_index = (q->pout + i + 1) % MAX_QUEUE_SIZE;
-        q->data[current_index] = q->data[next_index];
-    }
-    
-    q->pin = (q->pin - 1 + MAX_QUEUE_SIZE) % MAX_QUEUE_SIZE;
-    q->size--;
-    
-    return ERROR_OK;
-}
-
-// Вставка элемента на позицию от головы
-int insert_element_at_position(array_queue *q, request_t value, int position_from_head)
-{
-    if (is_array_queue_full(q))
-        return ERROR_OVEFLOW;
-    
-    if (position_from_head > q->size)
-        position_from_head = q->size; // В конец, если позиция больше размера
-    
-    // Сдвигаем элементы чтобы освободить место
-    for (int i = q->size; i > position_from_head; i--)
-    {
-        int current_index = (q->pout + i) % MAX_QUEUE_SIZE;
-        int prev_index = (q->pout + i - 1) % MAX_QUEUE_SIZE;
-        q->data[current_index] = q->data[prev_index];
-    }
-    
-    // Вставляем новый элемент
-    int insert_index = (q->pout + position_from_head) % MAX_QUEUE_SIZE;
-    q->data[insert_index] = value;
-    
-    q->pin = (q->pin + 1) % MAX_QUEUE_SIZE;
-    q->size++;
-    
-    return ERROR_OK;
-}
-
 // Основная функция моделирования для массива
-int simulate_array_queue(int printing)
+int simulate_array_queue(int printing, statistics_t *stats_out)
 {
     array_queue queue;
     system_state_t state;
@@ -99,7 +32,6 @@ int simulate_array_queue(int printing)
 
     // Инициализация
     init_array_queue(&queue);
-    srand(time(NULL));
     
     // Начальное состояние системы
     state.time = 0.0;
@@ -123,25 +55,25 @@ int simulate_array_queue(int printing)
     
     if (printing)
     {
-        printf("=== МОДЕЛИРОВАНИЕ СИСТЕМЫ МАССОВОГО ОБСЛУЖИВАНИЯ (МАССИВ) ===\n");
+        printf("\n\n=== МОДЕЛИРОВАНИЕ СИСТЕМЫ МАССОВОГО ОБСЛУЖИВАНИЯ (МАССИВ) ===\n");
         printf("Параметры системы:\n");
         printf("  Заявки 1 типа: приход [%.1f, %.1f], обслуживание [%.1f, %.1f]\n", q1_arrival_min, q1_arrival_max, q1_service_min, q1_service_max);
         printf("  Заявки 2 типа: обслуживание [%.1f, %.1f]\n", q2_service_min, q2_service_max);
         printf("Начало моделирования...\n\n");
     }
     
-    // В начале процесса заявка 2-го типа входит в ОА
+    // Вхождение заявки 2-го типа в ОА
     state.device_busy = 1;
     state.current_request.type = REQUEST_TYPE_2;
     state.current_request.arrival_time = 0.0;
     state.service_start_time = 0.0;
     state.next_service_end = generate_random_time(q2_service_min, q2_service_max);
-    stats.total_requests_type2++; // <-- Первая заявка 2-го типа
+    stats.total_requests_type2++;
 
     // Основной цикл моделирования
     while (stats.served_requests_type1 < 1000)
     {
-        // Определяем следующее событие
+        // Определение следующего события
         next_event_time = state.next_arrival_type1;
         event_type = 1; // 1 - приход заявки 1 типа, 2 - окончание обслуживания
         
@@ -151,13 +83,13 @@ int simulate_array_queue(int printing)
             event_type = 2;
         }
         
-        // Обновляем статистику длины очереди
+        // Обновление статистики длины очереди
         stats.total_queue_length += queue.size;
         stats.measurements_count++;
         if (queue.size > stats.max_queue_length)
             stats.max_queue_length = queue.size;
         
-        // Обновляем время простоя аппарата
+        // Обновление времени простоя аппарата
         if (!state.device_busy)
             stats.device_idle_time += (next_event_time - state.time);
         
@@ -172,21 +104,18 @@ int simulate_array_queue(int printing)
                 return ERROR_OVEFLOW;
             }
 
-            // Создаем заявку 1 типа
+            // Создание заявки 1 типа
             request_t new_request = {REQUEST_TYPE_1, state.time};
             
-            // Добавляем заявку в очередь
-            if (enqueue_array(&queue, new_request, printing) == ERROR_OK)
+            // Добавление заявки в очередь
+            if (enqueue_array(&queue, new_request, 0) == ERROR_OK)
                 stats.total_requests_type1++;
             
-            // Планируем следующий приход
+            // Планирование следующего прихода
             state.next_arrival_type1 = state.time + generate_random_time(q1_arrival_min, q1_arrival_max);
         }
         else // Окончание обслуживания
         {
-            if (printing)
-                printf("Время %.2f: Завершено обслуживание заявки типа %d\n", state.time, state.current_request.type);
-            
             if (state.current_request.type == REQUEST_TYPE_1)
             {
                 stats.served_requests_type1++;
@@ -197,26 +126,28 @@ int simulate_array_queue(int printing)
             }
             else // REQUEST_TYPE_2
             {
-                // Возвращаем ту же заявку 2-го типа в очередь
-                type2_request = state.current_request; // <-- Копируем ту же заявку
-                type2_request.arrival_time = state.time; // <-- Обновляем время поступления
+                // Возвращение заявки 2-го типа в очередь
+                type2_request = state.current_request;
+                type2_request.arrival_time = state.time;
+                stats.total_requests_type2++;
                 
                 insert_position = (queue.size >= 3) ? 3 : queue.size;
-                rc = insert_element_at_position(&queue, type2_request, insert_position);
+                rc = insert_array_element_at_position(&queue, type2_request, insert_position);
+                if (rc == ERROR_OVEFLOW && printing)
+                    printf("Время %.2f: ОЧЕРЕДЬ ПЕРЕПОЛНЕНА!\n", state.time);
                 if (rc != ERROR_OK)
                     return rc;
             }
             
-            // Начинаем обслуживание следующей заявки, если есть
             if (!is_array_queue_empty(&queue))
             {
-                next_request = dequeue_array(&queue, printing);
+                next_request = dequeue_array(&queue, 0);
                 
                 state.device_busy = 1;
                 state.current_request = next_request;
                 state.service_start_time = state.time;
                 
-                // Выбираем время обслуживания в зависимости от типа заявки
+                // Выбор времени обслуживания в зависимости от типа заявки
                 if (next_request.type == REQUEST_TYPE_1)
                     service_time = generate_random_time(q1_service_min, q1_service_max);
                 else
@@ -236,53 +167,220 @@ int simulate_array_queue(int printing)
     // Финальная статистика
     stats.total_modeling_time = state.time;
     if (printing)
-    {
-        printf("\n=== МОДЕЛИРОВАНИЕ ЗАВЕРШЕНО ===\n");
-        print_statistics(&stats, 1);
-    }
+        print_statistics(&stats);
+
+    // Выход статистики
+    if (stats_out != NULL)
+        *stats_out = stats;
     
     return ERROR_OK;
 }
 
-// Функция вывода статистики
-void print_statistics(const statistics_t *stats, int is_final)
+// Моделирование для списка
+int simulate_list_queue(int printing, statistics_t *stats_out)
 {
-    if (is_final)
+    list_queue queue;
+    system_state_t state;
+    statistics_t stats;
+    
+    double next_event_time, service_time;
+    int event_type, rc = ERROR_OK;
+    request_t next_request, type2_request;
+
+    init_list_queue(&queue);
+    srand(time(NULL));
+    
+    // Начальное состояние
+    state.time = 0.0;
+    state.next_arrival_type1 = generate_random_time(q1_arrival_min, q1_arrival_max);
+    state.next_service_end = 0.0;
+    state.device_busy = 0;
+    state.current_request.type = 0;
+    state.current_request.arrival_time = 0.0;
+    state.service_start_time = 0.0;
+    
+    // Статистика
+    stats.total_requests_type1 = 0;
+    stats.served_requests_type1 = 0;
+    stats.total_requests_type2 = 0;
+    stats.total_queue_time = 0.0;
+    stats.total_modeling_time = 0.0;
+    stats.device_idle_time = 0.0;
+    stats.max_queue_length = 0;
+    stats.total_queue_length = 0.0;
+    stats.measurements_count = 0;
+    
+    if (printing)
     {
-        printf("\n=== ФИНАЛЬНАЯ СТАТИСТИКА ===\n");
-        printf("Общее время моделирования: %.2f е.в.\n", stats->total_modeling_time);
-        printf("Время простоя аппарата: %.2f е.в.\n", stats->device_idle_time);
-        printf("Коэффициент простоя: %.2f%%\n", 
-               (stats->device_idle_time / stats->total_modeling_time) * 100);
-        printf("Количество вошедших заявок 1 типа: %d\n", stats->total_requests_type1);
-        printf("Количество вышедших заявок 1 типа: %d\n", stats->served_requests_type1);
-        printf("Количество обращений заявки 2 типа: %d\n", stats->total_requests_type2); // <-- Это теперь отражает количество раз, когда заявка 2-го типа вошла в ОА
-        printf("Максимальная длина очереди: %d\n", stats->max_queue_length);
-        printf("Средняя длина очереди: %.2f\n", 
-               stats->total_queue_length / stats->measurements_count);
-        printf("Среднее время пребывания в очереди: %.2f е.в.\n", 
-               stats->total_queue_time / stats->served_requests_type1);
+        printf("\n\n=== МОДЕЛИРОВАНИЕ СИСТЕМЫ МАССОВОГО ОБСЛУЖИВАНИЯ (СПИСОК) ===\n");
+        printf("Параметры системы:\n");
+        printf("  Заявки 1 типа: приход [%.1f, %.1f], обслуживание [%.1f, %.1f]\n", q1_arrival_min, q1_arrival_max, q1_service_min, q1_service_max);
+        printf("  Заявки 2 типа: обслуживание [%.1f, %.1f]\n", q2_service_min, q2_service_max);
+        printf("Начало моделирования...\n\n");
     }
-    else
+    
+    // Вхождение заявки 2-го типа в ОА
+    state.device_busy = 1;
+    state.current_request.type = REQUEST_TYPE_2;
+    state.current_request.arrival_time = 0.0;
+    state.service_start_time = 0.0;
+    state.next_service_end = generate_random_time(q2_service_min, q2_service_max);
+    stats.total_requests_type2++;
+
+    while (stats.served_requests_type1 < 1000)
     {
-        printf("Промежуточная статистика:\n");
-        printf("Обслужено заявок 1 типа: %d\n", stats->served_requests_type1);
-        printf("Текущая длина очереди: измеряется в основном цикле\n");
+        next_event_time = state.next_arrival_type1;
+        event_type = 1;
+        
+        if (state.device_busy && state.next_service_end < next_event_time)
+        {
+            next_event_time = state.next_service_end;
+            event_type = 2;
+        }
+        
+        stats.total_queue_length += queue.size;
+        stats.measurements_count++;            
+        if (queue.size > stats.max_queue_length)
+            stats.max_queue_length = queue.size;
+        
+        if (!state.device_busy)
+            stats.device_idle_time += (next_event_time - state.time);
+        
+        state.time = next_event_time;
+        
+        if (event_type == 1)
+        {
+            if (queue.size >= MAX_QUEUE_SIZE)
+            {
+                if (printing)
+                    printf("Время %.2f: ОЧЕРЕДЬ ПЕРЕПОЛНЕНА!\n", state.time);
+                return ERROR_OVEFLOW;
+            }
+
+            request_t new_request = {REQUEST_TYPE_1, state.time};
+            rc = enqueue_list(&queue, new_request, 0);
+            if (rc == ERROR_MEM)
+                return ERROR_MEM;
+            stats.total_requests_type1++;
+            
+            state.next_arrival_type1 = state.time + generate_random_time(q1_arrival_min, q1_arrival_max);
+        }
+        else
+        {
+            if (state.current_request.type == REQUEST_TYPE_1)
+            {
+                stats.served_requests_type1++;
+                stats.total_queue_time += (state.service_start_time - state.current_request.arrival_time);
+                
+                if (stats.served_requests_type1 % 100 == 0 && printing)
+                    print_intermediate_stats(&stats, queue.size, stats.served_requests_type1);
+            }
+            else
+            {
+                type2_request = state.current_request;
+                type2_request.arrival_time = state.time;
+                stats.total_requests_type2++;
+                
+                rc = insert_list_element_at_position(&queue, type2_request, 3);
+                if (rc == ERROR_OVEFLOW && printing)
+                    printf("Время %.2f: ОЧЕРЕДЬ ПЕРЕПОЛНЕНА!\n", state.time);
+                if (rc != ERROR_OK)
+                    return rc;
+            }
+            
+            if (!is_list_queue_empty(&queue))
+            {
+                next_request = dequeue_list(&queue, 0);
+                state.device_busy = 1;
+                state.current_request = next_request;
+                state.service_start_time = state.time;
+                
+                if (next_request.type == REQUEST_TYPE_1)
+                    service_time = generate_random_time(q1_service_min, q1_service_max);
+                else
+                    service_time = generate_random_time(q2_service_min, q2_service_max);
+                    
+                state.next_service_end = state.time + service_time;
+            }
+            else
+            {
+                state.device_busy = 0;
+                state.current_request.type = 0;
+                state.next_service_end = 0.0;
+            }
+        }
     }
+    
+    stats.total_modeling_time = state.time;
+    if (printing)
+        print_statistics(&stats);
+    
+    // Выход статистики
+    if (stats_out != NULL)
+        *stats_out = stats;
+
+    return ERROR_OK;
 }
 
-// Функция вывода промежуточной статистики
-void print_intermediate_stats(const statistics_t *stats, int queue_size, int step)
+// Функция для замера времени
+uint64_t tick(void)
 {
-    printf("\n--- Статистика после %d заявок 1 типа ---\n", step);
-    printf("Текущая длина очереди: %d\n", queue_size);
-    printf("Средняя длина очереди: %.2f\n", stats->total_queue_length / stats->measurements_count);
-    printf("Вошедших заявок 1 типа: %d\n", stats->total_requests_type1);
-    printf("Вышедших заявок 1 типа: %d\n", stats->served_requests_type1);
-    if (stats->served_requests_type1 > 0)
-        printf("Среднее время пребывания в очереди: %.2f\n", 
-               stats->total_queue_time / stats->served_requests_type1);
-    else
-        printf("Среднее время пребывания в очереди: 0.00\n");
-    printf("----------------------------------------\n\n");
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
+}
+
+// Функция сравнения производительности
+int compare_queues(void)
+{
+    int runs = 1000, mem_array, mem_list, rc = ERROR_OK, max_queue_len_list = 0;
+    uint64_t time_array = 0, time_list = 0, start, end;
+
+    printf("\n=== СРАВНЕНИЕ ПРОИЗВОДИТЕЛЬНОСТИ ===\n");
+    printf("Количество запусков: %d\n", runs);
+
+    // Оценка памяти
+    mem_array = MAX_QUEUE_SIZE * sizeof(request_t);
+
+    // Замер времени для массива
+    for (int i = 0; i < runs; i++)
+    {
+        srand(runs + i);
+        start = tick();
+        rc = simulate_array_queue(0, NULL);
+        end = tick();
+        if (rc != ERROR_OK)
+            return rc;
+        time_array += (end - start);
+    }
+
+    // Замер времени для списка
+    for (int i = 0; i < runs; i++)
+    {
+        srand(runs + i);
+        statistics_t stats_list = {0};
+        start = tick();
+        rc = simulate_list_queue(0, &stats_list);
+        end = tick();
+        if (rc != ERROR_OK)
+            return rc;
+        time_list += (end - start);
+        max_queue_len_list += stats_list.max_queue_length;
+    }
+
+    // Вывод результатов
+    double avg_time_array = time_array / (double)runs / 1e6;
+    double avg_time_list = time_list  / (double)runs / 1e6;
+    mem_list =  (max_queue_len_list / runs) * sizeof(node_t);
+
+    printf("+-----------------------------------------------------------+\n");
+    printf("|                        РЕЗУЛЬТАТЫ                         |\n");
+    printf("+-----------------------------------------------------------+\n");
+    printf("|                        | Массив-очередь  | Список-очередь |\n");
+    printf("+------------------------+-----------------+----------------+\n");
+    printf("| Время (мс)             | %15.2f | %14.2f |\n", avg_time_array, avg_time_list);
+    printf("| Память (байт)          |  %14d | %14d |\n", mem_array, mem_list);
+    printf("+------------------------+-----------------+----------------+\n");
+
+    return ERROR_OK;
 }

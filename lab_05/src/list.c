@@ -11,88 +11,69 @@ int address_count = 0;
 // Инициализация очереди-списка
 void init_list_queue(list_queue *q)
 {
-    q->front = NULL;
-    q->rear = NULL;
+    q->pout = NULL;
+    q->pin = NULL;
     q->size = 0;
 }
 
 // Проверка на пустоту
 int is_list_queue_empty(list_queue *q)
 {
-    return q->front == NULL;
+    return q->pout == NULL;
 }
 
 // Добавление элемента в очередь-список
-int enqueue_list(list_queue *q, int value, float arrival_time, int show_address)
+int enqueue_list(list_queue *q, request_t req, int show_address)
 {
     node_t *new_node = (node_t*)malloc(sizeof(node_t));
     if (!new_node)
-    {
-        printf("Ошибка выделения памяти!\n");
         return ERROR_MEM;
-    }
     
-    // Заполнение данных нового узла
-    new_node->data = value;
-    new_node->arrival_time = arrival_time;
+    new_node->request = req;
     new_node->next = NULL;
     
-    // Сохраняем адрес для отслеживания
     if (address_count < MAX_QUEUE_SIZE * 2)
         used_addresses[address_count++] = new_node;
     
-    // Добавление в очередь
     if (is_list_queue_empty(q))
     {
-        // Первый элемент в очереди
-        q->front = new_node;
-        q->rear = new_node;
+        q->pout = new_node;
+        q->pin = new_node;
     }
     else
     {
-        // Добавление в конец очереди
-        q->rear->next = new_node;
-        q->rear = new_node;
+        q->pin->next = new_node;
+        q->pin = new_node;
     }
     q->size++;
     
     if (show_address)
-        printf("Добавлен элемент %d. Адрес: %p\n", value, (void*)new_node);
-    else
-        printf("Добавлен элемент %d в очередь-список\n", value);
-    
+        printf("Добавлен элемент типа %d. Адрес: %p\n", req.type, (void*)new_node);
+
     return ERROR_OK;
 }
 
 // Удаление элемента из очереди-списка
-int dequeue_list(list_queue *q, int show_address)
+request_t dequeue_list(list_queue *q, int show_address)
 {
+    request_t empty = {0, 0.0};
     if (is_list_queue_empty(q))
-    {
-        printf("Очередь-список пуста!\n");
-        return ERROR_EMPTY;
-    }
+        return empty;
     
-    node_t *temp = q->front;
-    int value = temp->data;
+    node_t *temp = q->pout;
+    request_t req = temp->request;
     
     if (show_address)
-        printf("Удален элемент %d. Адрес: %p\n", value, (void*)temp);
-    else
-        printf("Удален элемент %d из очереди-списка\n", value);
+        printf("Удален элемент типа %d. Адрес: %p\n", req.type, (void*)temp);
     
-    // Перемещаем указатель на следующий элемент
-    q->front = q->front->next;
+    q->pout = q->pout->next;
+    if (q->pout == NULL)
+        q->pin = NULL;
     
-    // Если очередь стала пустой, обнуляем rear
-    if (q->front == NULL)
-        q->rear = NULL;
-    
-    // Освобождаем память
     free(temp);
     q->size--;
     
-    return value;
+    return req;
 }
 
 // Вывод очереди-списка
@@ -105,11 +86,10 @@ void print_list_queue(list_queue *q)
     }
     
     printf("Очередь-список (размер: %d): ", q->size);
-    node_t *current = q->front;
-    
+    node_t *current = q->pout;
     while (current != NULL)
     {
-        printf("%d ", current->data);
+        printf("%d ", current->request.type);
         current = current->next;
     }
     printf("\n");
@@ -151,4 +131,48 @@ void print_list_addresses(void)
     {
         printf("Значительной фрагментации не обнаружено\n");
     }
+}
+
+// Функция вставки заявки на заданную позицию
+int insert_list_element_at_position(list_queue *q, request_t req, int position)
+{
+    if (q->size >= MAX_QUEUE_SIZE)
+        return ERROR_OVEFLOW;
+
+    if (position > q->size)
+        position = q->size;
+    
+    node_t *new_node = (node_t*)malloc(sizeof(node_t));
+    if (!new_node)
+        return ERROR_MEM;
+    
+    new_node->request = req;
+    node_t *current = NULL;
+
+    if (position == 0)
+    {
+        new_node->next = q->pout;
+        q->pout = new_node;
+        if (q->pin == NULL)
+            q->pin = new_node;
+    }
+    else if (position == q->size)
+    {
+        new_node->next = NULL;
+        q->pin->next = new_node;
+        q->pin = new_node;
+    }
+    else
+    {
+        current = q->pout;
+        for (int i = 0; i < position - 1; i++)
+            current = current->next;
+        
+        new_node->next = current->next;
+        current->next = new_node;
+    }
+    
+    q->size++;
+    
+    return ERROR_OK;
 }
