@@ -382,5 +382,87 @@ int compare_queues(void)
     printf("| Память (байт)          |  %14d | %14d |\n", mem_array, mem_list);
     printf("+------------------------+-----------------+----------------+\n");
 
+    printf("\n");
+    rc = benchmark_queue_ops();
+    if (rc != ERROR_OK)
+        return rc;
+
+    return ERROR_OK;
+}
+
+// Функция для замера времени операций enqueue и dequeue отдельно
+int benchmark_queue_ops(void)
+{
+    const int N = 1000;
+    const int runs = 100;
+    uint64_t start, end;
+    
+    uint64_t time_array_enqueue = 0, time_array_dequeue = 0;
+    uint64_t time_list_enqueue = 0, time_list_dequeue = 0;
+
+    printf("\n=== СРАВНЕНИЕ ОПЕРАЦИЙ ВКЛЮЧЕНИЯ/ИСКЛЮЧЕНИЯ ===\n");
+    printf("Количество элементов: %d, Прогонов: %d\n", N, runs);
+
+    // --- Замер для массива ---
+    for (int r = 0; r < runs; r++)
+    {
+        array_queue q;
+        init_array_queue(&q);
+        request_t temp = {1, 0.0};
+
+        start = tick();
+        for (int i = 0; i < N; i++)
+            if (enqueue_array(&q, temp, 0) != ERROR_OK)
+                return ERROR_OVEFLOW;
+        end = tick();
+        time_array_enqueue += (end - start);
+
+        start = tick();
+        for (int i = 0; i < N; i++)
+            dequeue_array(&q, 0);
+        end = tick();
+        time_array_dequeue += (end - start);
+    }
+
+    // --- Замер для списка ---
+    for (int r = 0; r < runs; r++)
+    {
+        list_queue q;
+        init_list_queue(&q);
+        request_t temp = {1, 0.0};
+
+        start = tick();
+        for (int i = 0; i < N; i++)
+            if (enqueue_list(&q, temp, 0) != ERROR_OK)
+                return ERROR_MEM;
+        end = tick();
+        time_list_enqueue += (end - start);
+
+        start = tick();
+        for (int i = 0; i < N; i++)
+            dequeue_list(&q, 0);
+        end = tick();
+        time_list_dequeue += (end - start);
+
+        while (!is_list_queue_empty(&q))
+            dequeue_list(&q, 0);
+    }
+
+    // Расчёт средних времён (в микросекундах)
+    double avg_enqueue_array = (double)time_array_enqueue / runs / N / 1000.0;
+    double avg_dequeue_array = (double)time_array_dequeue / runs / N / 1000.0;
+    double avg_enqueue_list = (double)time_list_enqueue / runs / N / 1000.0;
+    double avg_dequeue_list = (double)time_list_dequeue / runs / N / 1000.0;
+
+    // Вывод таблицы
+    printf("+-----------------------------------------------------------+\n");
+    printf("|                 СРАВНЕНИЕ ОПЕРАЦИЙ ОТДЕЛЬНО               |\n");
+    printf("+------------------------+-----------------+----------------+\n");
+    printf("| Операция               | Массив-очередь  | Список-очередь |\n");
+    printf("+------------------------+-----------------+----------------+\n");
+    printf("| Добавление             | %11.3f мкс | %10.3f мкс |\n", avg_enqueue_array, avg_enqueue_list);
+    printf("| Удаление               | %11.3f мкс | %10.3f мкс |\n", avg_dequeue_array, avg_dequeue_list);
+    printf("+------------------------+-----------------+----------------+\n");
+
     return ERROR_OK;
 }
