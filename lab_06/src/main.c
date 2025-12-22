@@ -95,7 +95,7 @@ int main(void)
 
                     found = search(root, key);
                     if (found) 
-                        printf("Элемент '%c' найден в дереве.\n", key);
+                        printf("Элемент: '%c' (%d) найден в дереве.\n", key, found->count);
                     else 
                         printf("Элемент '%c' не найден.\n", key);
                 }
