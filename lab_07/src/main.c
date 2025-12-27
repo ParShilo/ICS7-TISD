@@ -608,9 +608,6 @@ int main(void)
                     printf("Неверный выбор! Попробуйте снова.\n");
                     break;
             }
-
-            
-
         } while (rc == ERROR_OK && choice != 0);
     }
 
